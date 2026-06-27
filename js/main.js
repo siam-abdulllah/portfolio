@@ -1,95 +1,156 @@
-(function ($) {
-    "use strict";
+(function () {
+    'use strict';
 
-    // Spinner
-    var spinner = function () {
-        setTimeout(function () {
-            if ($('#spinner').length > 0) {
-                $('#spinner').removeClass('show');
-            }
-        }, 1);
-    };
-    spinner();
-    
-    
-    // Initiate the wowjs
-    new WOW().init();
+    const header = document.getElementById('header');
+    const nav = document.getElementById('nav');
+    const menuToggle = document.getElementById('menuToggle');
+    const backToTop = document.getElementById('backToTop');
+    const navLinks = document.querySelectorAll('.nav-link, .footer-nav a');
 
-
-    // Facts counter
-    $('[data-toggle="counter-up"]').counterUp({
-        delay: 10,
-        time: 2000
-    });
-
-
-    // Typed Initiate
-    if ($('.typed-text-output').length == 1) {
-        var typed_strings = $('.typed-text').text();
-        var typed = new Typed('.typed-text-output', {
-            strings: typed_strings.split(', '),
-            typeSpeed: 100,
-            backSpeed: 20,
-            smartBackspace: false,
-            loop: true
+    // Mobile menu toggle
+    if (menuToggle) {
+        menuToggle.addEventListener('click', function () {
+            nav.classList.toggle('open');
+            menuToggle.classList.toggle('active');
         });
     }
 
-
-    // Smooth scrolling to section
-    $(".btn-scroll").on('click', function (event) {
-        if (this.hash !== "") {
-            event.preventDefault();
-            
-            $('html, body').animate({
-                scrollTop: $(this.hash).offset().top - 0
-            }, 1500, 'easeInOutExpo');
-        }
-    });
-    
-    
-    // Skills
-    $('.skill').waypoint(function () {
-        $('.progress .progress-bar').each(function () {
-            $(this).css("width", $(this).attr("aria-valuenow") + '%');
+    // Close mobile menu on link click
+    navLinks.forEach(function (link) {
+        link.addEventListener('click', function () {
+            nav.classList.remove('open');
+            menuToggle.classList.remove('active');
         });
-    }, {offset: '80%'});
-
-
-    // Portfolio isotope and filter
-    var portfolioIsotope = $('.portfolio-container').isotope({
-        itemSelector: '.portfolio-item',
-        layoutMode: 'fitRows'
-    });
-    $('#portfolio-flters li').on('click', function () {
-        $("#portfolio-flters li").removeClass('active');
-        $(this).addClass('active');
-
-        portfolioIsotope.isotope({filter: $(this).data('filter')});
     });
 
+    // Active nav link on scroll
+    const sections = document.querySelectorAll('section[id]');
 
-    // Testimonials carousel
-    $(".testimonial-carousel").owlCarousel({
-        autoplay: true,
-        smartSpeed: 1500,
-        dots: true,
-        loop: true,
-        items: 1
-    });
-    
-    
-    // Back to top button
-    $(window).scroll(function () {
-        if ($(this).scrollTop() > 100) {
-            $('.back-to-top').fadeIn('slow');
+    function setActiveNav() {
+        const scrollY = window.scrollY + 120;
+
+        sections.forEach(function (section) {
+            const top = section.offsetTop;
+            const height = section.offsetHeight;
+            const id = section.getAttribute('id');
+
+            if (scrollY >= top && scrollY < top + height) {
+                document.querySelectorAll('.nav-link').forEach(function (link) {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === '#' + id) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+        });
+    }
+
+    // Header background on scroll
+    function handleScroll() {
+        if (window.scrollY > 50) {
+            header.style.background = 'rgba(27, 31, 36, 0.95)';
         } else {
-            $('.back-to-top').fadeOut('slow');
+            header.style.background = 'rgba(27, 31, 36, 0.85)';
         }
-    });
-    $('.back-to-top').click(function () {
-        $('html, body').animate({scrollTop: 0}, 1500, 'easeInOutExpo');
-        return false;
-    });
-})(jQuery);
 
+        if (window.scrollY > 400) {
+            backToTop.classList.add('visible');
+        } else {
+            backToTop.classList.remove('visible');
+        }
+
+        setActiveNav();
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    // Counter animation
+    const counters = document.querySelectorAll('.stat-number');
+    let countersAnimated = false;
+
+    function animateCounters() {
+        if (countersAnimated) return;
+
+        const statsSection = document.querySelector('.stats-grid');
+        if (!statsSection) return;
+
+        const rect = statsSection.getBoundingClientRect();
+        if (rect.top > window.innerHeight || rect.bottom < 0) return;
+
+        countersAnimated = true;
+
+        counters.forEach(function (counter) {
+            const target = parseInt(counter.getAttribute('data-count'), 10);
+            const duration = 2000;
+            const step = target / (duration / 16);
+            let current = 0;
+
+            const timer = setInterval(function () {
+                current += step;
+                if (current >= target) {
+                    counter.textContent = target;
+                    clearInterval(timer);
+                } else {
+                    counter.textContent = Math.floor(current);
+                }
+            }, 16);
+        });
+    }
+
+    window.addEventListener('scroll', animateCounters, { passive: true });
+    animateCounters();
+
+    // Fade-in on scroll
+    const fadeElements = document.querySelectorAll(
+        '.skill-card, .timeline-item, .portfolio-card, .stat-card, .info-item'
+    );
+
+    fadeElements.forEach(function (el) {
+        el.classList.add('fade-in');
+    });
+
+    const observer = new IntersectionObserver(
+        function (entries) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        },
+        { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+    );
+
+    fadeElements.forEach(function (el) {
+        observer.observe(el);
+    });
+
+    // Contact form
+    const contactForm = document.getElementById('contactForm');
+    if (contactForm) {
+        contactForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const btn = contactForm.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'Message Sent! <i class="fas fa-check"></i>';
+            btn.style.background = '#34A853';
+            contactForm.reset();
+            setTimeout(function () {
+                btn.innerHTML = originalText;
+                btn.style.background = '';
+            }, 3000);
+        });
+    }
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
+        anchor.addEventListener('click', function (e) {
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                e.preventDefault();
+                const offset = 80;
+                const top = target.getBoundingClientRect().top + window.scrollY - offset;
+                window.scrollTo({ top: top, behavior: 'smooth' });
+            }
+        });
+    });
+})();
