@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
     'use strict';
 
     const header = document.getElementById('header');
@@ -102,7 +102,7 @@
 
     // Fade-in on scroll
     const fadeElements = document.querySelectorAll(
-        '.skill-card, .timeline-item, .portfolio-card, .stat-card, .info-item'
+        '.expertise-card, .timeline-item, .project-card, .stat-card, .info-item'
     );
 
     fadeElements.forEach(function (el) {
